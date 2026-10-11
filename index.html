@@ -56,14 +56,25 @@
         }
 
         h1 {
-            font-size: 3.5rem;
-            margin-bottom: 60px;
+            font-size: 2.6rem; /* Yazı boyutu küçültüldü (Eskisi 3.5rem idi) */
+            margin-bottom: 50px;
             font-weight: 700;
-            letter-spacing: -1px; /* Premium fontlarda harf arasını hafif kısmak modern durur */
-            background: linear-gradient(180deg, #ffffff 0%, #a1a1aa 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            letter-spacing: 0.5px;
+            color: #ffffff; /* Yazıyı düz beyaza çevirdik ki daha net okunsun */
+            
+            /* Okunabilirliği artıran Glassmorphism Arka Plan */
+            background: rgba(0, 0, 0, 0.45); /* Yarı saydam siyah bir zemin */
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            
+            /* Kutu ayarları (Hap / Pill görünümü) */
+            padding: 15px 40px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.15); /* Çok ince parlak bir çerçeve */
+            display: inline-block; /* Arka planın sayfa sonuna kadar uzamayıp sadece yazıyı sarması için */
+            
+            /* Derinlik katan yazı gölgesi */
+            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.8);
         }
 
         .cards-wrapper {
