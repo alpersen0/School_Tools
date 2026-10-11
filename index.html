@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alper Sen's Tools</title>
+    <style>
+        /* Genel Sıfırlama ve Font Ayarı */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        /* Arka Plan ve Düzen */
+        body {
+            /* Koyu ve derin bir arka plan */
+            background-color: #0f0c29;
+            background-image: linear-gradient(315deg, #0f0c29 0%, #302b63 74%, #24243e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Cam Efektini Vurgulayan Arkadaki Renkli Işık Küreleri */
+        .color-sphere {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            animation: float 10s infinite ease-in-out alternate;
+        }
+
+        .sphere-1 {
+            width: 350px;
+            height: 350px;
+            background: #ff007f; /* Neon Pembe */
+            top: -50px;
+            left: 15%;
+        }
+
+        .sphere-2 {
+            width: 400px;
+            height: 400px;
+            background: #00d2ff; /* Neon Mavi */
+            bottom: -100px;
+            right: 15%;
+            animation-delay: -5s;
+        }
+
+        /* Işık Küreleri İçin Yavaş Dalgalanma Animasyonu */
+        @keyframes float {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(30px) scale(1.1); }
+        }
+
+        /* İçerik Konteyneri (Işıkların Üstünde Durması İçin z-index: 1) */
+        .container {
+            z-index: 1;
+            text-align: center;
+            width: 100%;
+            max-width: 1000px;
+            padding: 20px;
+        }
+
+        /* Başlık Stili */
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 60px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Kartların Izgara Düzeni */
+        .cards-wrapper {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Glassmorphism Kart Stili */
+        .glass-card {
+            text-decoration: none;
+            color: #fff;
+            width: 300px;
+            height: 200px;
+            /* Camın Kendisi */
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            /* Camın Çerçevesi (Işık Yansıması Hissi) */
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-top: 1px solid rgba(255, 255, 255, 0.4);
+            border-left: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 24px;
+            /* Gölgelendirme */
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Kart İçi İkonlar ve Metinler */
+        .card-icon {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            transition: transform 0.4s ease;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        /* Hover (Üzerine Gelme) Efektleri */
+        .glass-card:hover {
+            transform: translateY(-12px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 15px 45px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        .glass-card:hover .card-icon {
+            transform: scale(1.1);
+        }
+
+        /* Kartın İçinden Geçen Parlama Animasyonu (Işık Yansıması) */
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-25deg);
+            transition: all 0.7s ease;
+        }
+
+        .glass-card:hover::before {
+            left: 200%;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Arka Plan Işık Küreleri -->
+    <div class="color-sphere sphere-1"></div>
+    <div class="color-sphere sphere-2"></div>
+
+    <!-- Ana İçerik -->
+    <div class="container">
+        <h1>Alper Sen's Tools</h1>
+        
+        <div class="cards-wrapper">
+            <!-- Blog Writer Kartı -->
+            <!-- Link, depo içindeki klasöre yönlendirir -->
+            <a href="./blog_writer" class="glass-card">
+                <div class="card-icon">✍️</div>
+                <div class="card-title">Blog Writer</div>
+            </a>
+
+            <!-- HTML/PDF Editor Kartı -->
+            <!-- Link, depo içindeki klasöre yönlendirir -->
+            <a href="./html_pdf_editor" class="glass-card">
+                <div class="card-icon">📄</div>
+                <div class="card-title">HTML/PDF Editor</div>
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>
