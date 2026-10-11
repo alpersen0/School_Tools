@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NoteTaker Pro — HTML Düzenleyici</title>
+<style>
+/* ── RESET & BASE ── */
+*, *::before, *::after { box-sizing: border-box; }
+:root {
+  --bg: #F7F7F9; --header-bg: #FFFFFF; --sidebar-bg: #F0F2F5; --border: #E0E0E0;
+  --text-main: #2D3136; --text-dim: #6B7280; --accent: #2563EB; --accent-hover: #1D4ED8;
+  --hl-yellow: rgba(255, 224, 102, 0.45); --hl-yellow-border: #FACC15;
+  --hl-green: rgba(168, 230, 176, 0.45); --hl-green-border: #4ADE80;
+  --hl-orange: rgba(255, 184, 122, 0.45); --hl-orange-border: #FB923C;
+  --hl-pink: rgba(244, 168, 212, 0.45); --hl-pink-border: #F472B6;
+}
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; margin: 0; padding: 0; transition: background-color 0.3s, color 0.3s; }
+
+/* ── TOOLBAR ── */
+#toolbar { height: 56px; background: var(--header-bg); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); z-index: 100; transition: background-color 0.3s, border-color 0.3s; }
+#toolbar.hidden { display: none !important; }
+
+#toolbar .logo { font-size: 15px; font-weight: 700; color: var(--text-main); margin-right: 24px; text-decoration: none;}
+#toolbar .logo span { color: var(--accent); }
+.tb-divider { width: 1px; height: 24px; background: var(--border); margin: 0 16px; transition: background-color 0.3s; }
+.tb-group { display: flex; align-items: center; gap: 8px; }
+.color-btn { width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: transform 0.1s; padding: 0; }
+.color-btn:hover { transform: scale(1.15); }
+.color-btn.active { border-color: var(--text-main); box-shadow: 0 0 0 2px var(--bg) inset; }
+.color-btn[data-color="yellow"] { background: var(--hl-yellow-border); }
+.color-btn[data-color="green"] { background: var(--hl-green-border); }
+.color-btn[data-color="orange"] { background: var(--hl-orange-border); }
+.color-btn[data-color="pink"] { background: var(--hl-pink-border); }
+.btn { padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: #fff; color: var(--text-main); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; margin: 0; }
+.btn:hover { background: #F3F4F6; }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent-hover); }
+
+/* ── LAYOUT ── */
+#main-container { flex: 1; display: flex; overflow: hidden; position: relative; }
+#content-area { flex: 1; overflow-y: auto; position: relative; background: #fff; transition: background-color 0.3s; }
+#content-frame { max-width: 850px; margin: 0 auto; padding: 60px 40px 100px; line-height: 1.6; font-size: 15px; color: #333; transition: color 0.3s; }
+#content-frame * { max-width: 100%; }
+
+/* ── SIDEBAR ── */
+#sidebar { width: 340px; background: var(--sidebar-bg); border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s, border-color 0.3s; overflow: hidden; }
+#sidebar.hidden { width: 0; border-left-color: transparent; }
+.sidebar-inner { width: 340px; display: flex; flex-direction: column; height: 100%; }
+.sidebar-header { padding: 16px 20px; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 14px; display: flex; justify-content: space-between; transition: border-color 0.3s; }
+#notes-list { flex: 1; overflow-y: auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 16px; }
+.empty-state { text-align: center; color: var(--text-dim); font-size: 13px; margin-top: 40px; }
+.note-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: border-color 0.2s, box-shadow 0.2s, background-color 0.3s; cursor: pointer; }
+.note-card:hover, .note-card.active { border-color: var(--accent); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1); }
+.note-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px; font-weight: 600; color: var(--text-dim); transition: color 0.3s; }
+.note-delete { background: none; border: none; color: #EF4444; cursor: pointer; opacity: 0.5; padding: 0; }
+.note-delete:hover { opacity: 1; }
+.note-textarea { width: 100%; min-height: 60px; border: none; resize: none; outline: none; font-family: inherit; font-size: 13px; color: var(--text-main); line-height: 1.5; padding: 0; background: transparent; transition: color 0.3s; }
+.nt-hl { border-radius: 3px; padding: 2px 0; cursor: pointer; color: inherit; }
+.nt-hl.hl-yellow { background: var(--hl-yellow); border-bottom: 2px solid var(--hl-yellow-border); }
+.nt-hl.hl-green { background: var(--hl-green); border-bottom: 2px solid var(--hl-green-border); }
+.nt-hl.hl-orange { background: var(--hl-orange); border-bottom: 2px solid var(--hl-orange-border); }
+.nt-hl.hl-pink { background: var(--hl-pink); border-bottom: 2px solid var(--hl-pink-border); }
+.nt-note-anchor { background: rgba(37, 99, 235, 0.15); border-bottom: 2px dashed var(--accent); cursor: pointer; border-radius: 2px; padding: 2px 0; position: relative; }
+.nt-note-anchor.active { background: rgba(37, 99, 235, 0.35); }
+.nt-note-anchor::after { content: " 💬"; font-size: 0.8em; opacity: 0.8; vertical-align: super; }
+#tooltip { position: fixed; display: none; background: #1F2937; border-radius: 8px; padding: 6px 8px; gap: 6px; align-items: center; z-index: 9999; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+#tooltip.visible { display: flex; }
+.tt-color { width: 20px; height: 20px; border-radius: 50%; border: none; cursor: pointer; padding: 0; }
+.tt-color:hover { transform: scale(1.1); }
+.tt-color[data-color="yellow"] { background: var(--hl-yellow-border); }
+.tt-color[data-color="green"] { background: var(--hl-green-border); }
+.tt-color[data-color="orange"] { background: var(--hl-orange-border); }
+.tt-color[data-color="pink"] { background: var(--hl-pink-border); }
+.tt-divider { width: 1px; height: 16px; background: #4B5563; margin: 0 4px; }
+.tt-btn { background: none; border: none; color: #fff; font-size: 12px; cursor: pointer; padding: 4px 8px; border-radius: 4px; margin: 0;}
+.tt-btn:hover { background: #374151; }
+.home-btn { display: flex; align-items: center; gap: 6px; text-decoration: none; color: var(--text-dim); font-size: 13px; font-weight: 600; margin-right: 8px; padding: 6px 10px; border-radius: 6px; transition: background 0.2s, color 0.2s; }
+.home-btn:hover { background: #E5E7EB; color: var(--text-main); }
+
+/* ── DROP ZONE ── */
+#drop-zone { position: absolute; inset: 0; background: var(--bg); z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.drop-box { background: #fff; border: 2px dashed #CBD5E1; border-radius: 12px; padding: 60px; text-align: center; max-width: 500px; transition: background-color 0.3s, border-color 0.3s; }
+.drop-box h2 { margin-bottom: 8px; color: var(--text-main); }
+.drop-box p { color: var(--text-dim); font-size: 14px; margin-bottom: 20px; }
+#paste-area { width: 100%; height: 100px; margin-top: 20px; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; resize: none; background: transparent; color: var(--text-main); transition: border-color 0.3s, color 0.3s; }
+
+.back-link { position: absolute; top: 32px; left: 32px; text-decoration: none; color: var(--text-dim); font-size: 14px; font-weight: 600; transition: color 0.2s; display: flex; align-items: center; gap: 6px; }
+.back-link:hover { color: var(--text-main); }
+
+/* ── KARANLIK MOD (DARK MODE) ── */
+body.dark-mode {
+  --bg: #121212; 
+  --header-bg: #1E1E1E; 
+  --sidebar-bg: #181818; 
+  --border: #333333;
+  --text-main: #E5E7EB; 
+  --text-dim: #9CA3AF;
+}
+
+body.dark-mode #content-area { background: var(--bg); }
+/* Yüklenen HTML dosyasının beyaz kutularını şeffaf yapıp karanlık arka planı gösterir */
+body.dark-mode #content-frame *:not(.nt-hl):not(.nt-note-anchor) {background-color: transparent !important;color: var(--text-main) !important;}
+/* Fosforlu kalemle çizilen yerlerin okunabilirliğini korumak için yazıları koyu tutar */
+body.dark-mode #content-frame .nt-hl {color: #121212 !important;}
+body.dark-mode .drop-box { background: var(--header-bg); border-color: var(--border); }
+body.dark-mode .note-card { background: var(--header-bg); border-color: var(--border); }
+body.dark-mode .btn:not(.btn-primary) { background: #2D2D2D; color: #E5E7EB; border-color: #444; }
+body.dark-mode .btn:not(.btn-primary):hover { background: #3D3D3D; }
+body.dark-mode .home-btn:hover { background: #333; }
+body.dark-mode #paste-area { background: var(--bg); color: var(--text-main); border-color: var(--border); }
+body.dark-mode .color-btn.active { box-shadow: 0 0 0 2px var(--bg) inset; }
+
+/* ── MOBİL UYUMLULUK ── */
+@media (max-width: 768px) {
+  #toolbar { overflow-x: auto; padding: 10px 15px; height: auto; min-height: 56px; }
+  .home-btn { margin-right: 10px; padding: 4px 8px; font-size: 12px; }
+  #toolbar .logo { margin-right: 15px; }
+  .btn { padding: 6px 10px; font-size: 12px; white-space: nowrap; }
+  .drop-box { padding: 30px 20px; margin: 0 15px; width: calc(100% - 30px); }
+  #content-frame { padding: 20px 15px 80px; }
+  #sidebar { position: absolute; right: 0; top: 0; bottom: 0; z-index: 1000; box-shadow: -5px 0 25px rgba(0,0,0,0.15); max-width: 85vw; }
+  .sidebar-inner { width: 100%; }
+  #tooltip { padding: 8px 10px; gap: 8px; }
+  .tt-color { width: 24px; height: 24px; }
+}
+</style>
+</head>
+<body>
+
+<div id="toolbar" class="hidden">
+  <a href="/school_tools/html_pdf_editor/" class="home-btn" title="Ana Menüye Dön">
+    <span style="font-size: 16px;">🏠</span> Ana Menü
+  </a>
+  
+  <button class="btn" id="btn-dark-mode" title="Gece/Gündüz Modu" style="padding: 4px 8px; font-size: 16px; border: none; background: transparent; box-shadow: none; margin-right: 12px;">🌙</button>
+
+  <div class="logo">HTML<span>Modülü</span></div>
+  <div class="tb-group">
+    <button class="color-btn active" data-color="yellow"></button>
+    <button class="color-btn" data-color="green"></button>
+    <button class="color-btn" data-color="orange"></button>
+    <button class="color-btn" data-color="pink"></button>
+  </div>
+  <div class="tb-divider"></div>
+  <button class="btn" id="btn-add-note">📝 Seçili Alana Not Ekle</button>
+  <button class="btn" id="btn-toggle-sidebar" style="color: var(--text-dim); margin-left: 10px;">📋 Notları Göster</button>
+  <div style="flex:1"></div>
+  <div class="tb-group">
+    <span id="file-name" style="font-size:12px; color:gray; margin-right:10px;">Dosya Bekleniyor</span>
+    <button class="btn" id="btn-new">📂 Yeni Dosya</button>
+    <button class="btn btn-primary" id="btn-save">💾 Kaydet ve İndir</button>
+  </div>
+</div>
+
+<div id="main-container">
+  <div id="drop-zone">
+    <a href="/school_tools/html_pdf_editor/" class="back-link">← Ana Menüye Dön</a>
+    
+    <button id="btn-dark-mode-drop" style="position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 24px; cursor: pointer; z-index: 1000;" title="Karanlık/Aydınlık Mod">🌙</button>
+
+    <div class="drop-box" id="drop-box">
+      <h2>📄 HTML Dosyanızı Sürükleyin</h2>
+      <button class="btn btn-primary" id="btn-select-file" style="margin: 0 auto;">Bilgisayardan Seç</button>
+      <input type="file" id="file-input" accept=".html,.htm" style="display:none">
+      <textarea id="paste-area" placeholder="HTML kodunu buraya yapıştırıp yükleyebilirsiniz..."></textarea>
+      <button class="btn" id="btn-load-paste" style="margin: 10px auto 0;">Kodu Yükle</button>
+    </div>
+  </div>
+  
+  <div id="content-area">
+    <div id="content-frame"></div>
+  </div>
+  
+  <div id="sidebar" class="hidden">
+    <div class="sidebar-inner">
+      <div class="sidebar-header">
+        <span>Yorumlar & Notlar</span>
+        <span id="note-count" style="color:var(--accent); background:#EFF6FF; padding:2px 8px; border-radius:12px; font-size:12px;">0</span>
+      </div>
+      <div id="notes-list">
+        <div class="empty-state">Henüz not eklenmedi.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="tooltip">
+  <button class="tt-color" data-color="yellow"></button>
+  <button class="tt-color" data-color="green"></button>
+  <button class="tt-color" data-color="orange"></button>
+  <button class="tt-color" data-color="pink"></button>
+  <div class="tt-divider"></div>
+  <button class="tt-btn" id="tt-note">📝 Not Ekle</button>
+  <button class="tt-btn" id="tt-remove" style="color:#FCA5A5;">🗑️ Temizle</button>
+</div>
+
+<script>
+// ── KARANLIK MOD SİSTEMİ ──
+const darkModeBtn = document.getElementById('btn-dark-mode');
+const darkModeBtnDrop = document.getElementById('btn-dark-mode-drop');
+
+function setDarkMode(isDark) {
+  if (isDark) {
+    document.body.classList.add('dark-mode');
+    if (darkModeBtn) darkModeBtn.textContent = '☀️';
+    if (darkModeBtnDrop) darkModeBtnDrop.textContent = '☀️';
+  } else {
+    document.body.classList.remove('dark-mode');
+    if (darkModeBtn) darkModeBtn.textContent = '🌙';
+    if (darkModeBtnDrop) darkModeBtnDrop.textContent = '🌙';
+  }
+  localStorage.setItem('darkMode', isDark);
+}
+
+// Başlangıçta hafızayı kontrol et
+if (localStorage.getItem('darkMode') === 'true') {
+  setDarkMode(true);
+}
+
+const toggleMode = () => setDarkMode(!document.body.classList.contains('dark-mode'));
+
+if (darkModeBtn) darkModeBtn.onclick = toggleMode;
+if (darkModeBtnDrop) darkModeBtnDrop.onclick = toggleMode;
+
+// ── EDİTÖR İŞLEVLERİ ──
+const state = { originalHtml: '', filename: 'Ders_Notu.html', activeColor: 'yellow', savedRange: null };
+const frame = document.getElementById('content-frame');
+const dropZone = document.getElementById('drop-zone');
+const sidebar = document.getElementById('sidebar');
+const notesList = document.getElementById('notes-list');
+const tooltip = document.getElementById('tooltip');
+const btnToggleSidebar = document.getElementById('btn-toggle-sidebar');
+const toolbar = document.getElementById('toolbar');
+
+btnToggleSidebar.onclick = () => toggleSidebar();
+function toggleSidebar(forceOpen = false) {
+  if (forceOpen) sidebar.classList.remove('hidden');
+  else sidebar.classList.toggle('hidden');
+  btnToggleSidebar.innerHTML = sidebar.classList.contains('hidden') ? '📋 Notları Göster' : '👉 Notları Gizle';
+}
+
+document.getElementById('btn-select-file').onclick = () => document.getElementById('file-input').click();
+document.getElementById('file-input').onchange = (e) => loadFile(e.target.files[0]);
+dropZone.ondragover = e => e.preventDefault();
+dropZone.ondrop = e => { e.preventDefault(); loadFile(e.dataTransfer.files[0]); };
+document.getElementById('btn-load-paste').onclick = () => { const code = document.getElementById('paste-area').value; if(code) initWorkspace(code, 'Yapistirilan_Not.html'); };
+document.getElementById('btn-new').onclick = () => { if(confirm("Mevcut değişiklikler kaybolacak. Emin misiniz?")) location.reload(); };
+
+function loadFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => { initWorkspace(e.target.result, file.name); document.getElementById('file-input').value = ''; };
+  reader.readAsText(file);
+}
+
+function initWorkspace(rawHtml, filename) {
+  state.originalHtml = rawHtml; state.filename = filename; document.getElementById('file-name').textContent = filename;
+  const parser = new DOMParser(); const doc = parser.parseFromString(rawHtml, 'text/html');
+  let headStyles = '';
+  doc.head.querySelectorAll('style, link[rel="stylesheet"]').forEach(el => { headStyles += el.outerHTML + '\n'; });
+  frame.innerHTML = headStyles + doc.body.innerHTML;
+  
+  dropZone.style.display = 'none';
+  toolbar.classList.remove('hidden'); 
+  
+  sidebar.classList.add('hidden'); btnToggleSidebar.innerHTML = '📋 Notları Göster';
+  rebuildSidebar(); attachExistingEvents();
+}
+
+document.querySelectorAll('.color-btn').forEach(btn => {
+  btn.onclick = () => { document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); state.activeColor = btn.dataset.color; };
+});
+
+document.onmouseup = (e) => {
+  if (e.target.closest('#toolbar, #sidebar, #tooltip')) return;
+  setTimeout(() => {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed) { tooltip.classList.remove('visible'); return; }
+    state.savedRange = sel.getRangeAt(0).cloneRange();
+    tooltip.style.left = `${e.clientX - 60}px`; tooltip.style.top = `${e.clientY - 45}px`; tooltip.classList.add('visible');
+  }, 10);
+};
+document.onmousedown = (e) => { if (!e.target.closest('#tooltip')) tooltip.classList.remove('visible'); };
+
+document.querySelectorAll('.tt-color').forEach(btn => { btn.onclick = () => { applyAction('nt-hl hl-' + btn.dataset.color); tooltip.classList.remove('visible'); }; });
+document.getElementById('tt-note').onclick = () => { tooltip.classList.remove('visible'); createNote(); };
+document.getElementById('tt-remove').onclick = () => { tooltip.classList.remove('visible'); removeHighlights(); };
+document.getElementById('btn-add-note').onclick = () => { createNote(); };
+
+function applyAction(className, dataAttr = {}) {
+  if (!state.savedRange) return [];
+  const walker = document.createTreeWalker(state.savedRange.commonAncestorContainer, NodeFilter.SHOW_TEXT, null, false);
+  const nodes = []; let node;
+  while ((node = walker.nextNode())) {
+    if (state.savedRange.intersectsNode(node)) {
+      let start = node === state.savedRange.startContainer ? state.savedRange.startOffset : 0;
+      let end = node === state.savedRange.endContainer ? state.savedRange.endOffset : node.nodeValue.length;
+      nodes.push({ node, start, end });
+    }
+  }
+  if(nodes.length === 0 && state.savedRange.commonAncestorContainer.nodeType === Node.TEXT_NODE) nodes.push({ node: state.savedRange.commonAncestorContainer, start: state.savedRange.startOffset, end: state.savedRange.endOffset });
+  const wrappedElements = [];
+  nodes.forEach(({ node, start, end }) => {
+    const text = node.nodeValue; const before = text.substring(0, start); const middle = text.substring(start, end); const after = text.substring(end);
+    if (middle.trim().length > 0) {
+      const span = document.createElement(className.includes('nt-note') ? 'span' : 'mark');
+      span.className = className; Object.entries(dataAttr).forEach(([k, v]) => span.setAttribute(k, v)); span.textContent = middle;
+      const parent = node.parentNode;
+      if (before) parent.insertBefore(document.createTextNode(before), node);
+      parent.insertBefore(span, node);
+      if (after) parent.insertBefore(document.createTextNode(after), node);
+      parent.removeChild(node); wrappedElements.push(span);
+      if(span.tagName === 'MARK') span.ondblclick = () => unwrapElement(span);
+    }
+  });
+  window.getSelection().removeAllRanges(); state.savedRange = null; return wrappedElements;
+}
+
+function createNote() {
+  if (!state.savedRange) return alert('Lütfen metin seçin.');
+  const noteId = 'note-' + Date.now();
+  const elements = applyAction('nt-note-anchor', { 'data-note-id': noteId, 'data-note-text': '' });
+  if (elements.length > 0) { toggleSidebar(true); rebuildSidebar(); const newCard = document.getElementById('card-' + noteId); if(newCard) newCard.querySelector('textarea').focus(); }
+}
+
+function rebuildSidebar() {
+  notesList.innerHTML = ''; const anchors = Array.from(frame.querySelectorAll('.nt-note-anchor')); const uniqueNotes = {};
+  anchors.forEach(a => { const id = a.getAttribute('data-note-id'); if (!uniqueNotes[id]) uniqueNotes[id] = { id: id, text: a.getAttribute('data-note-text') || '', elements: [] }; uniqueNotes[id].elements.push(a); });
+  document.getElementById('note-count').textContent = Object.keys(uniqueNotes).length;
+  if (Object.keys(uniqueNotes).length === 0) { notesList.innerHTML = '<div class="empty-state">Henüz not eklenmedi.</div>'; return; }
+  Object.values(uniqueNotes).forEach((note, index) => {
+    const card = document.createElement('div'); card.className = 'note-card'; card.id = 'card-' + note.id;
+    card.innerHTML = `<div class="note-card-header"><span>Not #${index + 1}</span><button class="note-delete" title="Notu Sil">Sil</button></div><textarea class="note-textarea" placeholder="Notunuzu yazın...">${escapeHtml(note.text)}</textarea>`;
+    const ta = card.querySelector('textarea');
+    ta.oninput = () => note.elements.forEach(el => el.setAttribute('data-note-text', ta.value));
+    card.onmouseenter = () => note.elements.forEach(el => el.classList.add('active'));
+    card.onmouseleave = () => note.elements.forEach(el => el.classList.remove('active'));
+    card.onclick = () => note.elements[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    note.elements.forEach(el => { el.onmouseenter = () => card.classList.add('active'); el.onmouseleave = () => card.classList.remove('active'); el.onclick = () => { toggleSidebar(true); card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); ta.focus(); }; });
+    card.querySelector('.note-delete').onclick = (e) => { e.stopPropagation(); note.elements.forEach(el => unwrapElement(el)); rebuildSidebar(); };
+    notesList.appendChild(card);
+  });
+}
+
+function unwrapElement(el) { const parent = el.parentNode; while (el.firstChild) parent.insertBefore(el.firstChild, el); parent.removeChild(el); parent.normalize(); }
+function removeHighlights() { if (!state.savedRange) return; const container = state.savedRange.commonAncestorContainer; const root = container.nodeType === Node.ELEMENT_NODE ? container : container.parentElement; root.querySelectorAll('mark.nt-hl, span.nt-note-anchor').forEach(el => { if (state.savedRange.intersectsNode(el)) unwrapElement(el); }); rebuildSidebar(); }
+function attachExistingEvents() { frame.querySelectorAll('mark.nt-hl').forEach(mark => { mark.ondblclick = () => unwrapElement(mark); }); }
+function escapeHtml(str) { return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+document.getElementById('btn-save').onclick = () => {
+  if (!state.originalHtml) return alert('Lütfen önce bir dosya yükleyin.');
+  const exportCss = `.nt-hl { border-radius: 3px; padding: 2px 0; color: inherit; } .nt-hl.hl-yellow { background-color: rgba(255, 224, 102, 0.45); border-bottom: 2px solid #FACC15; } .nt-hl.hl-green { background-color: rgba(168, 230, 176, 0.45); border-bottom: 2px solid #4ADE80; } .nt-hl.hl-orange { background-color: rgba(255, 184, 122, 0.45); border-bottom: 2px solid #FB923C; } .nt-hl.hl-pink { background-color: rgba(244, 168, 212, 0.45); border-bottom: 2px solid #F472B6; } .nt-note-anchor { position: relative; background-color: rgba(37, 99, 235, 0.15); border-bottom: 2px dashed #2563EB; cursor: help; border-radius: 2px; padding: 2px 0; } .nt-note-anchor::after { content: " 💬"; font-size: 0.8em; vertical-align: super; opacity: 0.8; } .nt-note-anchor:hover::before { content: attr(data-note-text); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #1F2937; color: #fff; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-family: -apple-system, sans-serif; white-space: pre-wrap; width: max-content; max-width: 320px; z-index: 10000; box-shadow: 0 4px 15px rgba(0,0,0,0.2); pointer-events: none; text-align: left; line-height: 1.5; margin-bottom: 6px; }`;
+  const parser = new DOMParser(); const doc = parser.parseFromString(state.originalHtml, 'text/html');
+  doc.querySelectorAll('#notetaker-export-css').forEach(e => e.remove());
+  const tempDiv = document.createElement('div'); tempDiv.innerHTML = frame.innerHTML; tempDiv.querySelectorAll('style, link[rel="stylesheet"]').forEach(e => e.remove());
+  doc.body.innerHTML = tempDiv.innerHTML;
+  const styleEl = doc.createElement('style'); styleEl.id = 'notetaker-export-css'; styleEl.textContent = exportCss; doc.head.appendChild(styleEl);
+  const finalHtml = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
+  const blob = new Blob([finalHtml], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = state.filename; a.click(); URL.revokeObjectURL(url);
+};
+</script>
+</body>
+</html>

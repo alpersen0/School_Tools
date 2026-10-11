@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NoteTaker Pro — PDF Düzenleyici</title>
+
+<script src="https://documentservices.adobe.com/view-sdk/viewer.js"></script>
+
+<style>
+/* ── RESET & BASE ── */
+*, *::before, *::after { box-sizing: border-box; }
+body { 
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+  background: #F0F2F5; color: #2D3136; height: 100vh; display: flex; flex-direction: column; overflow: hidden; margin: 0; padding: 0; 
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* ── TOOLBAR ── */
+#toolbar { 
+  height: 56px; background: #FFFFFF; border-bottom: 1px solid #E0E0E0; display: flex; align-items: center; 
+  padding: 0 20px; flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); z-index: 100; 
+  transition: background-color 0.3s, border-color 0.3s;
+}
+#toolbar .logo { font-size: 15px; font-weight: 700; color: #2D3136; margin-right: 24px; text-decoration: none;}
+#toolbar .logo span { color: #E84545; } 
+.tb-divider { width: 1px; height: 24px; background: #E0E0E0; margin: 0 16px; }
+
+.btn { padding: 6px 14px; border-radius: 6px; border: 1px solid #E0E0E0; background: #fff; color: #2D3136; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; margin: 0; }
+.btn:hover { background: #F3F4F6; }
+.btn-primary { background: #2563EB; color: #fff; border-color: #2563EB; }
+.btn-primary:hover { background: #1D4ED8; }
+.home-btn { 
+  display: flex; align-items: center; gap: 6px; text-decoration: none; color: #6B7280; font-size: 13px; 
+  font-weight: 600; margin-right: 8px; padding: 6px 10px; border-radius: 6px; transition: background 0.2s, color 0.2s; 
+}
+.home-btn:hover { background: #E5E7EB; color: #2D3136; }
+
+/* ── LAYOUT ── */
+#main-container { flex: 1; display: flex; overflow: hidden; position: relative; }
+
+/* DROP ZONE */
+#drop-zone { position: absolute; inset: 0; background: #F0F2F5; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.drop-box { background: #fff; border: 2px dashed #CBD5E1; border-radius: 12px; padding: 60px; text-align: center; max-width: 500px; transition: background-color 0.3s, border-color 0.3s; }
+.drop-box h2 { margin-bottom: 8px; color: #2D3136; }
+.drop-box p { color: #6B7280; font-size: 14px; margin-bottom: 20px; }
+
+/* ADOBE PDF GÖRÜNTÜLEYİCİ ALANI */
+#adobe-dc-view { 
+  flex: 1; 
+  width: 100%; 
+  height: 100%; 
+  display: none; /* Dosya yüklenene kadar gizli */
+}
+
+/* ── KARANLIK MOD (DARK MODE) ── */
+body.dark-mode {
+  --bg: #121212; 
+  --header-bg: #1E1E1E; 
+  --border: #333333;
+  --text-main: #E5E7EB; 
+  --text-dim: #9CA3AF;
+  background-color: var(--bg);
+  color: var(--text-main);
+}
+
+body.dark-mode .drop-box {
+  background: var(--header-bg);
+  border-color: var(--border);
+  color: var(--text-main);
+}
+
+body.dark-mode .btn {
+  background: #2D2D2D;
+  color: #E5E7EB;
+  border-color: #444;
+}
+body.dark-mode .btn:hover { background: #3D3D3D; }
+
+body.dark-mode #toolbar { background: var(--header-bg); border-color: var(--border); }
+body.dark-mode .drop-box h2 { color: var(--text-main); }
+body.dark-mode .home-btn { color: var(--text-dim); }
+body.dark-mode .home-btn:hover { background: #333; color: var(--text-main); }
+body.dark-mode #toolbar .logo { color: var(--text-main); }
+body.dark-mode .tb-divider { background: var(--border); }
+
+/* Adobe PDF Motorunu Kusursuz Karanlık Moda Çeviren Sihirli Filtre */
+body.dark-mode #adobe-dc-view {
+  filter: invert(1) hue-rotate(180deg);
+}
+body.dark-mode #drop-zone {
+  background: var(--bg);
+}
+
+/* ── MOBİL UYUMLULUK ── */
+@media (max-width: 768px) {
+  #toolbar { overflow-x: auto; padding: 10px 15px; height: auto; min-height: 56px; }
+  .home-btn { margin-right: 10px; padding: 4px 8px; font-size: 12px; }
+  #toolbar .logo { margin-right: 15px; }
+  .btn { padding: 6px 10px; font-size: 12px; white-space: nowrap; }
+  .drop-box { padding: 30px 20px; margin: 0 15px; width: calc(100% - 30px); }
+}
+</style>
+</head>
+<body>
+
+<div id="toolbar">
+  <a href="/school_tools/html_pdf_editor/" class="home-btn" title="Ana Menüye Dön">
+    <span style="font-size: 16px;">🏠</span> Ana Menü
+  </a>
+  <button class="btn" id="btn-dark-mode" title="Gece/Gündüz Modu" style="padding: 4px 8px; font-size: 16px; border: none; background: transparent; box-shadow: none; margin-right: 12px;">🌙</button>
+  
+  <div class="logo">PDF<span>Modülü</span></div>
+  
+  <div class="tb-divider"></div>
+
+  <span style="font-size: 12px; color: #6B7280;">Alper Şen</span>
+
+  <div style="flex:1"></div>
+  
+  <span id="file-name" style="font-size:12px; color:gray; margin-right:10px;">Dosya Bekleniyor</span>
+  <button class="btn btn-primary" id="btn-select-file">📂 PDF Seç</button>
+  <input type="file" id="file-input" accept=".pdf" style="display:none">
+</div>
+
+<div id="main-container">
+  <div id="drop-zone">
+    <div class="drop-box">
+      <h2>📄 PDF Dosyanızı Sürükleyin</h2>
+      <p>Strateji vakaları veya sunum dosyalarınızı yükleyin.</p>
+      <button class="btn btn-primary" onclick="document.getElementById('file-input').click()" style="margin: 0 auto;">Bilgisayardan Seç</button>
+    </div>
+  </div>
+
+  <div id="adobe-dc-view"></div>
+</div>
+
+<script>
+// ⚠️ KENDI ADOBE CLIENT ID'Nİ BURAYA YAZMALISIN ⚠️
+const ADOBE_CLIENT_ID = "529cd71bca0f4e79b6efb82d7533c263";
+
+const dropZone = document.getElementById('drop-zone');
+const adobeViewContainer = document.getElementById('adobe-dc-view');
+
+// ── KARANLIK MOD SİSTEMİ ──
+const darkModeBtn = document.getElementById('btn-dark-mode');
+
+// Sayfa ilk açıldığında hafızada karanlık mod seçili mi diye bak
+if (localStorage.getItem('darkMode') === 'true') {
+  document.body.classList.add('dark-mode');
+  if (darkModeBtn) darkModeBtn.textContent = '☀️';
+}
+
+// Butona tıklandığında modu değiştir ve hafızaya kaydet
+if (darkModeBtn) {
+  darkModeBtn.onclick = () => {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('darkMode', isDark); // Seçimi kaydet
+    darkModeBtn.textContent = isDark ? '☀️' : '🌙'; // İkonu değiştir
+  };
+}
+
+// Dosya Yükleme İşlemleri
+document.getElementById('btn-select-file').onclick = () => document.getElementById('file-input').click();
+document.getElementById('file-input').onchange = (e) => loadAdobePDF(e.target.files[0]);
+
+dropZone.ondragover = e => e.preventDefault();
+dropZone.ondrop = e => { e.preventDefault(); loadAdobePDF(e.dataTransfer.files[0]); };
+
+function loadAdobePDF(file) {
+  if (!file || file.type !== 'application/pdf') return alert('Lütfen geçerli bir PDF dosyası seçin.');
+  
+  document.getElementById('file-name').textContent = file.name;
+  
+  // Arayüzü Değiştir
+  dropZone.style.display = 'none';
+  adobeViewContainer.style.display = 'block';
+
+  // Dosyayı ArrayBuffer formatında okuyup Adobe API'sine gönderiyoruz
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const filePromise = Promise.resolve(e.target.result);
+    
+    // Adobe PDF Viewer Başlatılıyor
+    const adobeDCView = new AdobeDC.View({
+      clientId: ADOBE_CLIENT_ID, 
+      divId: "adobe-dc-view"
+    });
+
+    // Önizleme ayarları ve PDF'i render etme
+    adobeDCView.previewFile({
+      content: { promise: filePromise },
+      metaData: { fileName: file.name }
+    }, {
+      embedMode: "FULL_WINDOW",     // Slayt görünümünden tam teşekküllü Adobe arayüzüne geçiş
+      defaultViewMode: "FIT_WIDTH", // Sayfaları ekrana sığdırarak alt alta sürekli kaydırmayı açar
+      showAnnotationTools: true,    // Highlight, altı çizme ve not alma araçlarını göster
+      showDownloadPDF: true,        // Dosyayı indirebilme butonunu aktif et
+      showPrintPDF: true,
+      showLeftHandPanel: false      // Okuma alanını daraltmamak için sol menüyü kapalı başlat
+    });
+  };
+  
+  reader.readAsArrayBuffer(file);
+}
+</script>
+</body>
+</html>

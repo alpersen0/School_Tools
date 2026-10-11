@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NoteTaker Pro — Çalışma İstasyonu</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #F7F7F9; color: #2D3136;
+    height: 100vh; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    transition: background-color 0.3s, color 0.3s;
+  }
+  .header { text-align: center; margin-bottom: 40px; padding: 0 20px; }
+  .header h1 { font-size: 28px; margin-bottom: 10px; }
+  .header h1 span { color: #2563EB; }
+  .header p { color: #6B7280; font-size: 15px; }
+  
+  .cards { 
+    display: flex; gap: 24px; padding: 0 20px; width: 100%; justify-content: center; 
+  }
+  
+  .card {
+    background: #fff; border: 1px solid #E0E0E0; border-radius: 12px; padding: 40px;
+    width: 100%; max-width: 280px;
+    text-align: center; cursor: pointer; text-decoration: none; color: inherit;
+    transition: all 0.2s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+  }
+  .card:hover {
+    border-color: #2563EB; box-shadow: 0 10px 25px rgba(37, 99, 235, 0.1); transform: translateY(-4px);
+  }
+  .card-icon { font-size: 48px; margin-bottom: 20px; }
+  .card h2 { font-size: 18px; margin-bottom: 8px; }
+  .card p { font-size: 13px; color: #6B7280; line-height: 1.5; }
+
+  /* ── DISABLED KART STİLİ ── */
+  .card.disabled { 
+    cursor: not-allowed; 
+    opacity: 1; 
+    position: relative; 
+    transition: background 0.3s ease;
+  }
+  .card.disabled:hover { 
+    border-color: #E0E0E0; 
+    background-color: #F3F4F6; 
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02); 
+    transform: none; 
+  }
+  .card.disabled::after {
+    content: "Çok Yakında";
+    position: absolute; 
+    top: 50%; left: 50%; 
+    transform: translate(-50%, -50%); 
+    background: rgba(0, 0, 0, 0.7); 
+    color: white; 
+    padding: 8px 16px; 
+    border-radius: 20px;
+    font-size: 14px; 
+    font-weight: 600;
+    opacity: 0; 
+    transition: opacity 0.3s; 
+    pointer-events: none;
+    z-index: 10;
+  }
+  .card.disabled:hover::after { opacity: 1; }
+  .card.disabled:hover .card-icon,
+  .card.disabled:hover h2,
+  .card.disabled:hover p {
+    opacity: 0.3;
+  }
+
+  /* ── KARANLIK MOD (DARK MODE) ── */
+  body.dark-mode {
+    --bg: #121212; 
+    --header-bg: #1E1E1E; 
+    --border: #333333;
+    --text-main: #E5E7EB; 
+    --text-dim: #9CA3AF;
+    background-color: var(--bg);
+    color: var(--text-main);
+  }
+
+  body.dark-mode .card {
+    background: var(--header-bg);
+    border-color: var(--border);
+    color: var(--text-main);
+  }
+
+  body.dark-mode .header h1, 
+  body.dark-mode .header p { 
+    color: var(--text-main); 
+  }
+
+  @media (max-width: 768px) {
+    .header { margin-bottom: 30px; }
+    .header h1 { font-size: 24px; }
+    .cards { flex-direction: column; align-items: center; gap: 16px; }
+    .card { padding: 24px; max-width: 320px; }
+  }
+  /* ── TEMA BUTONU (BELİRGİN ÇERÇEVE) ── */
+  .theme-toggle {
+    position: absolute; top: 20px; right: 20px; z-index: 1000;
+    width: 44px; height: 44px; border-radius: 50%;
+    font-size: 20px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    background: #FFFFFF; 
+    border: 2px solid #2D3136; /* Aydınlık modda koyu/zıt çerçeve */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+  }
+
+  .theme-toggle:hover { 
+    transform: scale(1.1); 
+  }
+
+  body.dark-mode .theme-toggle {
+    background: #1E1E1E;
+    border: 2px solid #E5E7EB; /* Karanlık modda açık/zıt çerçeve */
+  }
+  
+</style>
+</head>
+<body>
+
+  <button id="btn-dark-mode" class="theme-toggle" title="Karanlık/Aydınlık Mod">🌙</button>
+
+  <div class="header">
+    <h1>NoteTaker<span>Pro</span></h1>
+    <p>Çalışmak istediğiniz modülü seçin</p>
+  </div>
+
+  <div class="cards">
+    <a href="/school_tools/html_pdf_editor/html_editor" class="card">
+      <div class="card-icon">🌐</div>
+      <h2>HTML Düzenleyici</h2>
+      <p>Ders notlarını, özetleri ve AI çıktılarını okuyun, renklendirin ve not alın.</p>
+    </a>
+
+    <a href="/school_tools/html_pdf_editor/pdf_editor" class="card">
+      <div class="card-icon">📄</div>
+      <h2>PDF Düzenleyici</h2>
+      <p>Strateji vakalarını, akademik makaleleri ve sunum slaytlarını inceleyin.</p>
+    </a>
+  </div>
+
+<script>
+// ── KARANLIK MOD SİSTEMİ ──
+const darkModeBtn = document.getElementById('btn-dark-mode');
+
+// Sayfa ilk açıldığında hafızada karanlık mod seçili mi diye bak
+if (localStorage.getItem('darkMode') === 'true') {
+  document.body.classList.add('dark-mode');
+  if (darkModeBtn) darkModeBtn.textContent = '☀️';
+}
+
+// Butona tıklandığında modu değiştir ve hafızaya kaydet
+if (darkModeBtn) {
+  darkModeBtn.onclick = () => {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('darkMode', isDark); // Seçimi kaydet
+    darkModeBtn.textContent = isDark ? '☀️' : '🌙'; // İkonu değiştir
+  };
+}
+</script>
+</body>
+</html>
