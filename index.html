@@ -6,9 +6,10 @@
     <title>Alper Sen's Tools</title>
     
     <!-- Premium Font: Plus Jakarta Sans -->
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Lucide Icons kütüphanesi -->
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -56,24 +57,30 @@
         }
 
         h1 {
-            font-size: 2.6rem; /* Yazı boyutu küçültüldü (Eskisi 3.5rem idi) */
-            margin-bottom: 50px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            color: #ffffff; /* Yazıyı düz beyaza çevirdik ki daha net okunsun */
+            font-family: 'Montserrat', sans-serif; /* Yeni premium font */
+            font-size: 2.2rem; /* Boyutu biraz daha zarif hale getirdik */
+            font-weight: 500;
+            letter-spacing: 3px; /* Premium hissi veren en önemli detay: geniş harf aralığı */
+            color: #ffffff;
             
-            /* Okunabilirliği artıran Glassmorphism Arka Plan */
-            background: rgba(0, 0, 0, 0.45); /* Yarı saydam siyah bir zemin */
+            /* Glassmorphism Arka Plan */
+            background: rgba(0, 0, 0, 0.45);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             
-            /* Kutu ayarları (Hap / Pill görünümü) */
-            padding: 15px 40px;
-            border-radius: 50px;
-            border: 1px solid rgba(255, 255, 255, 0.15); /* Çok ince parlak bir çerçeve */
-            display: inline-block; /* Arka planın sayfa sonuna kadar uzamayıp sadece yazıyı sarması için */
+            /* Mükemmel Ortalama Ayarları */
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1; /* Yazının dikeyde kaymasını kesin olarak engeller */
             
-            /* Derinlik katan yazı gölgesi */
+            /* Kutu ayarları */
+            padding: 20px 45px; 
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            margin-bottom: 50px;
+            
+            /* Derinlik */
             text-shadow: 0 4px 15px rgba(0, 0, 0, 0.8);
         }
 
